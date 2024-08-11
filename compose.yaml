@@ -1,16 +1,58 @@
 services:
+  # ##############################
+  # # Frontend Container
+  # ##############################
+  # frontend:
+  #   container_name: frontend
+  #   image: frontend:1.0.0
+  #   build:
+  #     dockerfile: Dockerfile
+  #     context: ./frontend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+
+  # ##############################
+  # # Backend Container
+  # ##############################
+  # backend:
+  #   container_name: backend
+  #   image: backend:1.0.0
+  #   build:
+  #     dockerfile: go.dockerfile
+  #     context: ./backend
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   networks:
+  #     - mynet
+  #   ports:
+  #     - "8080:8080"
+
+  ##############################
+  # Database Container
+  ##############################
   db:
-    container_name: db
-    image: mysql:8.0
     restart: always
+    image: mysql:8.0
+    container_name: db
     environment:
-      MYSQL_USER: ran_symbio
-      MYSQL_PASSWORD: symbio
       MYSQL_ROOT_PASSWORD: Symb1O
       MYSQL_DATABASE: symbio_db
+      MYSQL_USER: ran_symbio
+      MYSQL_PASSWORD: symbio
     ports:
       - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-volumes:
-  db_data:
+    build:
+      context: ./database
+    networks:
+      - mynet
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-pSymb1O"]
+      interval: 1m
+      timeout: 30s
+      retries: 30
+networks:
+  mynet:
+    driver: bridge

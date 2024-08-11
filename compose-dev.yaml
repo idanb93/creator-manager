@@ -1,0 +1,12 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: Symb1O
+      MYSQL_DATABASE: symbio_db
+      MYSQL_USER: ran_symbio
+      MYSQL_PASSWORD: symbio
+    ports:
+      - "3306:3306"
+    restart: always
