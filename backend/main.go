@@ -50,6 +50,9 @@ func main() {
     router.HandleFunc("/posts/delete", deletePostHandler).Methods(http.MethodDelete)
     router.HandleFunc("/posts/update", updatePostHandler).Methods(http.MethodPut)
     router.HandleFunc("/login", loginHandler).Methods(http.MethodPost)
+    router.HandleFunc("/users", getUsersHandler).Methods(http.MethodGet)
+    router.HandleFunc("/users/create", createUserHandler).Methods(http.MethodPost)
+    router.HandleFunc("/users/delete", deleteUserHandler).Methods(http.MethodDelete)
 
     // Wrap the router with CORS and JSON content type middlewares
     enhancedRouter := enableCORS(jsonContentTypeMiddleware(router))
@@ -77,6 +80,24 @@ func getPostsHandler(w http.ResponseWriter, r *http.Request) {
 
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(posts)
+}
+
+// Handler to fetch all users
+func getUsersHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodGet {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+        return
+    }
+
+    var users []User
+    if result := db.Find(&users); result.Error != nil {
+        log.Printf("Failed to retrieve users from database: %v", result.Error)
+        http.Error(w, "Failed to retrieve users from database", http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(users)
 }
 
 // Handler to create a new post
@@ -117,6 +138,42 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(post)
 }
 
+// Handler to create a new user
+func createUserHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+        return
+    }
+
+    var req struct {
+        Email  string `json:"email"`
+        Password   string `json:"password"`
+    }
+
+    // Decode the incoming JSON payload
+    err := json.NewDecoder(r.Body).Decode(&req)
+    if err != nil {
+        http.Error(w, "Invalid JSON", http.StatusBadRequest)
+        return
+    }
+
+    // Create a new post
+    user := User{
+        Email:  req.Email,
+        Password:   req.Password,
+    }
+
+    if result := db.Create(&user); result.Error != nil {
+        log.Printf("Failed to create user: %v", result.Error)
+        http.Error(w, "Failed to create user", http.StatusInternalServerError)
+        return
+    }
+
+    // Return the full new post object
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(user)
+}
+
 // Handler to delete a post by ID
 func deletePostHandler(w http.ResponseWriter, r *http.Request) {
     if r.Method != http.MethodDelete {
@@ -148,6 +205,46 @@ func deletePostHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    w.WriteHeader(http.StatusNoContent)
+}
+
+// Handler to delete a user by ID
+func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
+    // Check if the request method is DELETE
+    if r.Method != http.MethodDelete {
+        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+        return
+    }
+
+    // Get the user ID from the query parameters
+    idStr := r.URL.Query().Get("id")
+    if idStr == "" {
+        http.Error(w, "ID is required", http.StatusBadRequest)
+        return
+    }
+
+    // Convert the ID from string to uint
+    id, err := strconv.ParseUint(idStr, 10, 32)
+    if err != nil {
+        http.Error(w, "Invalid ID format", http.StatusBadRequest)
+        return
+    }
+
+    // Delete the user from the database (assuming ID column in the database is named 'ID')
+    result := db.Delete(&User{}, id)
+    if result.Error != nil {
+        log.Printf("Failed to delete user: %v", result.Error)
+        http.Error(w, "Failed to delete user", http.StatusInternalServerError)
+        return
+    }
+
+    // Check if any rows were affected (i.e., user found and deleted)
+    if result.RowsAffected == 0 {
+        http.Error(w, "User not found", http.StatusNotFound)
+        return
+    }
+
+    // Respond with no content status
     w.WriteHeader(http.StatusNoContent)
 }
 

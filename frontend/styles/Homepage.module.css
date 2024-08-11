@@ -33,17 +33,94 @@
     margin-left: 1vw;
 }
 
+.deleteUsers {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-left: 1vw;
+}
+
+.addUsers {
+    background-color: #2E7F74;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-left: 1vw;
+}
+
+.addPosts {
+    background-color: #2E7F74;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-left: 1vw;
+}
+
 .sidebar {
     background-color: white;
     padding: 2rem;
-    width: 250px;
-    height: 100%;
+    width: 18vw;
+    height: 40vh;
     position: fixed;
-    top: 60px; /* Height of the navbar */
-    left: 0;
+    top: 10vh;
+    left: 2vw;
     border-radius: 10px;
     z-index: 999;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.dropdownContainer {
+    position: relative;
+    margin-top: 1rem; /* Adds spacing between button and dropdown */
+}
+
+.dropdownMenu {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Match the width of the sidebar */
+    z-index: 1000;
+}
+
+.dropdownMenu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.dropdownMenu li {
+    padding: 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #ddd;
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s; /* Smooth transition for hover effect */
+}
+
+.dropdownMenu li:hover {
+    background-color: #e0e0e0; /* Slightly darker background on hover */
+}
+
+.selectedUser {
+    background-color: #0033cc; /* Royal blue or similar color */
+    color: white;
+}
+
+.confirmDeleteButton {
+    background-color: #ff4d4d; /* Same color as Delete Users button */
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%; /* Make the button full width */
+    margin-top: 1rem; /* Add margin to separate it from the dropdown items */
 }
 
 .content {

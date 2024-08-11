@@ -15,7 +15,7 @@ CREATE TABLE posts (
     author INT,
     title VARCHAR(255) NOT NULL,
     body TEXT NOT NULL,
-    FOREIGN KEY (author) REFERENCES users(id)
+    FOREIGN KEY (author) REFERENCES users(id) ON DELETE CASCADE
 );
 
 INSERT INTO posts (author, title, body) VALUES (1, "The Future of Clean Energy: Bill Gates' Vision", "Bill Gates recently shared his vision for the future of clean energy, emphasizing the critical role of innovation in combating climate change. He believes that advancements in battery technology and nuclear power are essential to achieving net-zero emissions. Gates highlighted the potential of new startups focused on sustainable energy solutions, urging both governments and private sectors to invest more heavily in research and development. As the world faces increasing environmental challenges, Gates' insights offer a hopeful perspective on how technology can drive meaningful change.");
