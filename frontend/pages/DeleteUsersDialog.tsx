@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface DeleteUsersDialogProps {
   onClose: () => void;
   onDeleteUser: (userId: string) => void;
-  users: { ID: string; Email: string }[];
+  users: { id: string; email: string; Nickname: string }[];
 }
 
 const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({ onClose, onDeleteUser, users }) => {
@@ -19,7 +19,7 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({ onClose, onDelete
   return (
     <div style={dialogStyles.overlay}>
       <div style={dialogStyles.dialog}>
-        <h3 style={{color: "white"}}>Select User to Delete</h3>
+        <h3 style={{ color: 'white' }}>Select User to Delete</h3>
         <select
           style={dialogStyles.select}
           value={selectedUserId || ''}
@@ -27,7 +27,9 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({ onClose, onDelete
         >
           <option value="" disabled>Select a user</option>
           {users.map(user => (
-            <option key={user.ID} value={user.ID}>{user.Email}</option>
+            <option key={user.id} value={user.id}>
+              {user.Nickname ? `${user.Nickname} (${user.email})` : user.email}
+            </option>
           ))}
         </select>
         <div style={dialogStyles.buttonContainer}>

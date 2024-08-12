@@ -19,6 +19,7 @@ import (
 
 type User struct {
     ID       uint   `gorm:"primaryKey;autoIncrement"`
+    Nickname string `gorm:"unique;not null"`
     Email    string `gorm:"unique;not null"`
     Password string `gorm:"not null"`
 }
@@ -28,6 +29,7 @@ type Post struct {
     Author uint   `gorm:"not null"` // Foreign key
     Title  string `gorm:"not null"`
     Body   string `gorm:"type:text"`
+    Nickname string `gorm:"unique;not null"`
 
     // Define the relationship
     User User `gorm:"foreignKey:Author"`
@@ -76,10 +78,14 @@ func main() {
     log.Fatal(http.ListenAndServe(":8080", enhancedRouter))
 }
 
-// Handler to fetch all posts
 func getPostsHandler(w http.ResponseWriter, r *http.Request) {
     var posts []Post
-    if result := db.Preload("User").Find(&posts); result.Error != nil {
+
+    // Join the posts and users table to retrieve the posts along with the nickname of the author
+    if result := db.Table("posts").
+        Select("posts.id, posts.author, posts.title, posts.body, users.nickname").
+        Joins("left join users on users.id = posts.author").
+        Scan(&posts); result.Error != nil {
         log.Printf("Failed to retrieve posts from database: %v", result.Error)
         http.Error(w, "Failed to retrieve posts from database", http.StatusInternalServerError)
         return
@@ -98,6 +104,7 @@ func getUsersHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Encode the retrieved users into JSON
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(users)
 }
@@ -140,6 +147,7 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 // Handler to create a new user
 func createUserHandler(w http.ResponseWriter, r *http.Request) {
     var req struct {
+        Nickname string `json:"nickname"`
         Email    string `json:"email"`
         Password string `json:"password"`
     }
@@ -153,6 +161,7 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
 
     // Create a new user
     user := User{
+        Nickname: req.Nickname,
         Email:    req.Email,
         Password: req.Password,
     }

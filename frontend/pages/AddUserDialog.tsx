@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 
 interface AddUserDialogProps {
   onClose: () => void;
-  onAddUser: (email: string, password: string) => void;
+  onAddUser: (email: string, password: string, nickname: string) => void;
 }
 
 const AddUserDialog: React.FC<AddUserDialogProps> = ({ onClose, onAddUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [nickname, setNickname] = useState(''); // State for the nickname
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAddUser(email, password);
+    onAddUser(email, password, nickname); // Include the nickname in the function call
     onClose();
   };
 
@@ -26,6 +27,16 @@ const AddUserDialog: React.FC<AddUserDialogProps> = ({ onClose, onAddUser }) => 
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <label style={dialogStyles.label} htmlFor="nickname">Nickname:</label>
+          <input
+            style={dialogStyles.input}
+            type="text"
+            id="nickname"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
             required
           />
           

@@ -18,10 +18,11 @@
     font-size: 18px;
 }
 
-.postEmail {
-    font-size: 14px;
+.postNickname {
+    font-size: 18px;
     color: #666; /* A lighter color for the email text */
     margin-top: 5px;
+    font-weight: bold; /* Make the text bold */
 }
 
 .deletePostButton {

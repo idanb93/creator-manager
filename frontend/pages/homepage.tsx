@@ -29,7 +29,6 @@ const Homepage: React.FC = () => {
             });
             if (response.ok) {
                 const data = await response.json();
-                console.log("data", data)
                 setPosts(data);
             } else {
                 console.error('Failed to fetch posts:', response.statusText);
@@ -63,7 +62,7 @@ const Homepage: React.FC = () => {
         }
     };
 
-    const handleAddUser = async (email: string, password: string) => {
+    const handleAddUser = async (email: string, password: string, nickname: string) => {
         const token = localStorage.getItem('token');
         if (!token) {
             router.push('/login');
@@ -77,7 +76,7 @@ const Homepage: React.FC = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ email, password, nickname }),
             });
 
             if (response.ok) {
@@ -207,13 +206,14 @@ const Homepage: React.FC = () => {
             <div className={styles.content}>
                 <div className={styles.posts}>
                     {posts.map(post => (
-                    <Post
-                        key={post.ID}
-                        id={post.ID} 
-                        topic={post.Title}
-                        content={post.Body}
-                        onDelete={handleDeletePost} // Add this prop to handle deletion
-                    />
+                        <Post
+                            key={post.ID}
+                            id={post.ID} 
+                            topic={post.Title}
+                            content={post.Body}
+                            nickname={post.Nickname} // Pass nickname to Post component
+                            onDelete={handleDeletePost} // Add this prop to handle deletion
+                        />
                     ))}
                 </div>
             </div>
@@ -221,13 +221,17 @@ const Homepage: React.FC = () => {
                 <DeleteUsersDialog
                     onClose={() => setShowDeleteUsersDialog(false)}
                     onDeleteUser={handleDeleteUser}
-                    users={users}
+                    users={users.map(user => ({
+                        id: user.id,
+                        email: user.email,
+                        Nickname: user.Nickname // Include nickname in user info passed to the dialog
+                    }))}
                 />
             )}
             {showAddUserDialog && (
                 <AddUserDialog 
                     onClose={() => setShowAddUserDialog(false)}
-                    onAddUser={handleAddUser}
+                    onAddUser={handleAddUser} // Pass handleAddUser which now includes nickname
                 />
             )}
             {showAddPostDialog && (

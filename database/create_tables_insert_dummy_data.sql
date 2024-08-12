@@ -1,14 +1,15 @@
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
+	nickname VARCHAR(255) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
 );
 
-INSERT INTO users (email, password) VALUES ('bill.gates@microsoft.com', '1111');
-INSERT INTO users (email, password) VALUES ('george.hotz@comma.ai', '1234');
-INSERT INTO users (email, password) VALUES ('elon.musk@tesla.com', '1234');
-INSERT INTO users (email, password) VALUES ('mark.zuckerberg@meta.com', '1111');
-INSERT INTO users (email, password) VALUES ('marcus.hutchins@cy-researcher.com', '1234');
+INSERT INTO users (nickname, email, password) VALUES ('Bill Gates', 'bill.gates@microsoft.com', '1111');
+INSERT INTO users (nickname, email, password) VALUES ('GeoHot', 'george.hotz@comma.ai', '1234');
+INSERT INTO users (nickname, email, password) VALUES ('Elon Musk', 'elon.musk@tesla.com', '1234');
+INSERT INTO users (nickname, email, password) VALUES ('Mark Zuckerberg', 'mark.zuckerberg@meta.com', '1111');
+INSERT INTO users (nickname, email, password) VALUES ('MalewareTech', 'marcus.hutchins@cy-researcher.com', '1234');
 
 CREATE TABLE posts (
     id INT AUTO_INCREMENT PRIMARY KEY,

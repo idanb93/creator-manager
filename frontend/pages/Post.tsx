@@ -5,10 +5,11 @@ interface PostProps {
     id: string;
     topic: string;
     content: string;
+    nickname : string,
     onDelete: (id: string) => void;
 }
 
-const Post: React.FC<PostProps> = ({ id, topic, content, onDelete }) => {
+const Post: React.FC<PostProps> = ({ id, topic, content, nickname, onDelete }) => {
     const handleDelete = () => {
         onDelete(id);
     };
@@ -18,7 +19,7 @@ const Post: React.FC<PostProps> = ({ id, topic, content, onDelete }) => {
             <div className={styles.postHeader}>
                 <span className={styles.postTopic}>{topic}</span>
             </div>
-            <div className={styles.postEmail}>{id}</div>
+            <div className={styles.postNickname}>{nickname}</div>
             <p>{content}</p>
             <button className={styles.deletePostButton} onClick={handleDelete}>
                 Delete Post
