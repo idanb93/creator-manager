@@ -66,14 +66,20 @@
 .sidebar {
     background-color: white;
     padding: 2rem;
-    width: 18vw;
-    height: 40vh;
-    position: fixed;
+    height: auto;
+    position :fixed;
     top: 10vh;
     left: 2vw;
     border-radius: 10px;
     z-index: 999;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.buttonContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 1rem;
 }
 
 .dropdownContainer {
