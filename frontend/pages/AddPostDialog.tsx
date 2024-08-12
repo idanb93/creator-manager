@@ -107,7 +107,7 @@ const styles = {
         borderRadius: '4px',
         cursor: 'pointer',
         marginTop: '10px',
-      }
+    }
 };
 
 export default AddPostDialog;

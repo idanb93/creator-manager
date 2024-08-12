@@ -21,8 +21,10 @@ const Login: FC = () => {
 
       if (response.ok) {
         const data = await response.json();
-        // Handle successful login: Redirect to the homepage
-        console.log('Login successful:', data);
+        // Store the JWT token in local storage or cookies
+        localStorage.setItem('token', data.token);
+
+        // Redirect to the homepage after successful login
         router.push('/homepage');
       } else if (response.status === 401) {
         setError('Invalid email or password');

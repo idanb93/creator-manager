@@ -1,13 +1,18 @@
 package main
 
 import (
+    "time"
+    "context"
+    "strings"
     "encoding/json"
     "fmt"
     "log"
     "net/http"
     "strconv"
 
+    "github.com/golang-jwt/jwt/v5"
     "github.com/gorilla/mux"
+
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
 )
@@ -28,6 +33,8 @@ type Post struct {
     User User `gorm:"foreignKey:Author"`
 }
 
+var jwtSecret = []byte("symbio")
+
 var db *gorm.DB
 
 func main() {
@@ -45,14 +52,19 @@ func main() {
     router := mux.NewRouter()
 
     // Define routes
-    router.HandleFunc("/posts", getPostsHandler).Methods(http.MethodGet)
-    router.HandleFunc("/posts/create", createPostHandler).Methods(http.MethodPost)
-    router.HandleFunc("/posts/delete", deletePostHandler).Methods(http.MethodDelete)
-    router.HandleFunc("/posts/update", updatePostHandler).Methods(http.MethodPut)
+    // Public route
     router.HandleFunc("/login", loginHandler).Methods(http.MethodPost)
-    router.HandleFunc("/users", getUsersHandler).Methods(http.MethodGet)
     router.HandleFunc("/users/create", createUserHandler).Methods(http.MethodPost)
-    router.HandleFunc("/users/delete", deleteUserHandler).Methods(http.MethodDelete)
+
+    // Protected routes
+    protectedRoutes := router.PathPrefix("/").Subrouter()
+    protectedRoutes.Use(jwtMiddleware)
+    protectedRoutes.HandleFunc("/posts", getPostsHandler).Methods(http.MethodGet)
+    protectedRoutes.HandleFunc("/posts/create", createPostHandler).Methods(http.MethodPost)
+    protectedRoutes.HandleFunc("/posts/delete", deletePostHandler).Methods(http.MethodDelete)
+    protectedRoutes.HandleFunc("/posts/update", updatePostHandler).Methods(http.MethodPut)
+    protectedRoutes.HandleFunc("/users", getUsersHandler).Methods(http.MethodGet)
+    protectedRoutes.HandleFunc("/users/delete", deleteUserHandler).Methods(http.MethodDelete)
 
     // Wrap the router with CORS and JSON content type middlewares
     enhancedRouter := enableCORS(jsonContentTypeMiddleware(router))
@@ -66,11 +78,6 @@ func main() {
 
 // Handler to fetch all posts
 func getPostsHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodGet {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
     var posts []Post
     if result := db.Preload("User").Find(&posts); result.Error != nil {
         log.Printf("Failed to retrieve posts from database: %v", result.Error)
@@ -84,11 +91,6 @@ func getPostsHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler to fetch all users
 func getUsersHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodGet {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
     var users []User
     if result := db.Find(&users); result.Error != nil {
         log.Printf("Failed to retrieve users from database: %v", result.Error)
@@ -102,13 +104,7 @@ func getUsersHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler to create a new post
 func createPostHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
     var req struct {
-        Author uint   `json:"author"` // User ID
         Title  string `json:"title"`
         Body   string `json:"body"`
     }
@@ -120,11 +116,14 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
+    // Retrieve the user ID from the JWT
+    userID := r.Context().Value("user_id").(uint)
+
     // Create a new post
     post := Post{
         Title:  req.Title,
         Body:   req.Body,
-        Author: req.Author,
+        Author: userID,
     }
 
     if result := db.Create(&post); result.Error != nil {
@@ -140,14 +139,9 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler to create a new user
 func createUserHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
     var req struct {
-        Email  string `json:"email"`
-        Password   string `json:"password"`
+        Email    string `json:"email"`
+        Password string `json:"password"`
     }
 
     // Decode the incoming JSON payload
@@ -157,10 +151,10 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Create a new post
+    // Create a new user
     user := User{
-        Email:  req.Email,
-        Password:   req.Password,
+        Email:    req.Email,
+        Password: req.Password,
     }
 
     if result := db.Create(&user); result.Error != nil {
@@ -169,18 +163,13 @@ func createUserHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Return the full new post object
+    // Return the created user
     w.Header().Set("Content-Type", "application/json")
     json.NewEncoder(w).Encode(user)
 }
 
 // Handler to delete a post by ID
 func deletePostHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodDelete {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
     idStr := r.URL.Query().Get("id")
     if idStr == "" {
         http.Error(w, "ID is required", http.StatusBadRequest)
@@ -210,27 +199,18 @@ func deletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 // Handler to delete a user by ID
 func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
-    // Check if the request method is DELETE
-    if r.Method != http.MethodDelete {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
-    // Get the user ID from the query parameters
     idStr := r.URL.Query().Get("id")
     if idStr == "" {
         http.Error(w, "ID is required", http.StatusBadRequest)
         return
     }
 
-    // Convert the ID from string to uint
     id, err := strconv.ParseUint(idStr, 10, 32)
     if err != nil {
         http.Error(w, "Invalid ID format", http.StatusBadRequest)
         return
     }
 
-    // Delete the user from the database (assuming ID column in the database is named 'ID')
     result := db.Delete(&User{}, id)
     if result.Error != nil {
         log.Printf("Failed to delete user: %v", result.Error)
@@ -238,23 +218,16 @@ func deleteUserHandler(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // Check if any rows were affected (i.e., user found and deleted)
     if result.RowsAffected == 0 {
         http.Error(w, "User not found", http.StatusNotFound)
         return
     }
 
-    // Respond with no content status
     w.WriteHeader(http.StatusNoContent)
 }
 
 // Handler to update a post by ID
 func updatePostHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPut {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
     var req struct {
         ID     uint   `json:"id"`
         Title  string `json:"title"`
@@ -296,19 +269,12 @@ func updatePostHandler(w http.ResponseWriter, r *http.Request) {
     json.NewEncoder(w).Encode(post)
 }
 
-// Handler to log in a user
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-        return
-    }
-
     var req struct {
         Email    string `json:"email"`
         Password string `json:"password"`
     }
 
-    // Decode the incoming JSON payload
     err := json.NewDecoder(r.Body).Decode(&req)
     if err != nil {
         http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -317,50 +283,90 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
     var user User
     result := db.Where("email = ? AND password = ?", req.Email, req.Password).First(&user)
-    
-    // Log the SQL query and result
     if result.Error != nil {
-        if result.Error == gorm.ErrRecordNotFound {
-            log.Printf("Login attempt failed: No user found with email %s", req.Email)
-            http.Error(w, "Invalid email or password", http.StatusUnauthorized)
-            return
-        }
-        log.Printf("Failed to execute query: %v", result.Error)
-        http.Error(w, "Failed to log in", http.StatusInternalServerError)
+        http.Error(w, "Invalid email or password", http.StatusUnauthorized)
         return
     }
 
-    // Successful login
-    log.Printf("Login successful for user: %+v", user)
-    
-    w.WriteHeader(http.StatusOK)
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+        "user_id": user.ID,
+        "exp":     time.Now().Add(time.Hour * 24).Unix(),
+    })
+
+    tokenString, err := token.SignedString(jwtSecret)
+    if err != nil {
+        http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+        return
+    }
+
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(user)
+    json.NewEncoder(w).Encode(map[string]string{
+        "token": tokenString,
+    })
 }
 
-// Middleware to enable CORS
-func enableCORS(next http.Handler) http.Handler {
+// Middleware to require JWT authentication
+func jwtMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Set CORS headers
-        w.Header().Set("Access-Control-Allow-Origin", "*") // Allow any origin
-        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-        w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-
-        // Check if the request is for CORS preflight
-        if r.Method == "OPTIONS" {
-            w.WriteHeader(http.StatusOK)
+        authHeader := r.Header.Get("Authorization")
+        if authHeader == "" {
+            http.Error(w, "Authorization header is required", http.StatusUnauthorized)
             return
         }
 
-        // Pass down the request to the next middleware (or final handler)
+        // Extract the token from the "Bearer" scheme
+        tokenStr := strings.TrimPrefix(authHeader, "Bearer ")
+
+        // Parse and validate the token
+        token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+            if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+                return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+            }
+            return jwtSecret, nil
+        })
+
+        if err != nil || !token.Valid {
+            http.Error(w, "Invalid token", http.StatusUnauthorized)
+            return
+        }
+
+        // Extract user ID from the token
+        claims, ok := token.Claims.(jwt.MapClaims)
+        if !ok {
+            http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+            return
+        }
+
+        userIDFloat, ok := claims["user_id"].(float64)
+        if !ok {
+            http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+            return
+        }
+
+        userID := uint(userIDFloat)
+
+        // Add the user ID to the request context
+        ctx := context.WithValue(r.Context(), "user_id", userID)
+        next.ServeHTTP(w, r.WithContext(ctx))
+    })
+}
+
+// Middleware to enable CORS for all requests
+func enableCORS(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+        w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+        if r.Method == "OPTIONS" {
+            return
+        }
         next.ServeHTTP(w, r)
     })
 }
 
-// Middleware to set JSON Content-Type
+// Middleware to set the content type to JSON
 func jsonContentTypeMiddleware(next http.Handler) http.Handler {
     return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Set JSON Content-Type
         w.Header().Set("Content-Type", "application/json")
         next.ServeHTTP(w, r)
     })
