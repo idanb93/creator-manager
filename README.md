@@ -16,11 +16,17 @@ Initialize the application:
 docker compose up
 ```
 
-### This can take a few minutes as the backend container is waiting for the DB container health-check.
+### This can take a few minutes as the backend container is waiting for the DB container health-check..........
 
-Open your browser and browse to http://localhost:3000
+Open your browser and browse to http://localhost:3000 - You should be able to see the login screen.
 
-If you want to run the application in dev mode:
+### Example User:
+```
+email : bill.gates@microsoft.com
+password : 1111
+```
+
+Run the application in dev mode:
 
 ```
 docker-compose -f docker-compose.dev.yaml up
