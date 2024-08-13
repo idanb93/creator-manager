@@ -29,13 +29,13 @@ const AddPostDialog: React.FC<AddPostDialogProps> = ({ onClose, onAddPost }) => 
                         required
                     />
                     <label style={styles.label} htmlFor="body">Body:</label>
-                    <textarea
+                    <div
                         style={styles.textarea}
-                        id="body"
-                        value={body}
-                        onChange={(e) => setBody(e.target.value)}
-                        required
-                    />
+                        contentEditable
+                        onInput={(e: any) => setBody(e.currentTarget.textContent)}
+                    >
+                        {body}
+                    </div>
                     <div style={styles.buttonContainer}>
                         <button style={styles.button} type="submit">Add Post</button>
                         <button style={styles.cancelButton} type="button" onClick={onClose}>Cancel</button>
@@ -60,9 +60,11 @@ const styles = {
     },
     dialog: {
         backgroundColor: '#272727',
-        padding: '20px',
+        padding: '30px',
         borderRadius: '8px',
-        width: '300px',
+        width: '500px',
+        maxHeight: '80vh',
+        overflowY: 'auto' as const,
         textAlign: 'center' as const,
     },
     form: {
@@ -71,21 +73,28 @@ const styles = {
     },
     label: {
         color: '#FFFFFF',
-        marginBottom: '8px',
+        marginBottom: '12px',
         textAlign: 'left' as const,
     },
     input: {
-        marginBottom: '16px',
-        padding: '10px',
+        marginBottom: '20px',
+        padding: '12px',
         borderRadius: '4px',
         border: '1px solid #CCCCCC',
     },
     textarea: {
-        marginBottom: '16px',
-        padding: '10px',
+        marginBottom: '20px',
+        padding: '12px',
         borderRadius: '4px',
         border: '1px solid #CCCCCC',
-        minHeight: '100px',
+        minHeight: '200px',
+        maxHeight: '400px',
+        overflowY: 'auto' as const,
+        backgroundColor: '#FFFFFF',
+        color: '#000000',
+        textAlign: 'left' as const,
+        whiteSpace: 'pre-wrap' as const,
+        wordWrap: 'break-word' as const,
     },
     buttonContainer: {
         display: 'flex',
