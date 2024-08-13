@@ -83,8 +83,8 @@ const Homepage: React.FC = () => {
             });
 
             if (response.ok) {
+                alert('User deleted successfully');
                 const data = await response.json();
-                console.log('User added successfully:', data);
                 fetchUsers(); // Refresh the user list
             } else {
                 console.error('Failed to add user:', response.statusText);
