@@ -5,6 +5,7 @@ import { useRouter } from 'next/router';
 import AddUserDialog from './AddUserDialog';
 import AddPostDialog from './AddPostDialog';
 import DeleteUsersDialog from './DeleteUsersDialog'; // Import the new component
+import EditPostDialog from './EditPostDialog';
 
 const Homepage: React.FC = () => {
     const [posts, setPosts] = useState<any[]>([]);
@@ -12,6 +13,8 @@ const Homepage: React.FC = () => {
     const [showDeleteUsersDialog, setShowDeleteUsersDialog] = useState(false);
     const [showAddUserDialog, setShowAddUserDialog] = useState(false);
     const [showAddPostDialog, setShowAddPostDialog] = useState(false);
+    const [editPostData, setEditPostData] = useState<{ id: string, title: string, body: string } | null>(null);
+    const [showEditPostDialog, setShowEditPostDialog] = useState(false);
 
     const router = useRouter();
 
@@ -120,6 +123,35 @@ const Homepage: React.FC = () => {
         }
     };
 
+    const handleEditPost = async (id : string, title: string, body: string) => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        try {
+            const response = await fetch('http://localhost:8080/posts/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ id, title, body }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Post updated successfully:', data);
+                fetchPosts(); // Refresh the post list
+            } else {
+                console.error('Failed to update post:', response.statusText);
+            }
+        } catch (err) {
+            console.error('Error updating post:', err);
+        }
+    };
+
     const handleDeletePost = async (id: string) => {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -212,8 +244,12 @@ const Homepage: React.FC = () => {
                             topic={post.Title}
                             content={post.Body}
                             email={post.Email}
-                            nickname={post.Nickname} // Pass nickname to Post component
-                            onDelete={handleDeletePost} // Add this prop to handle deletion
+                            nickname={post.Nickname}
+                            onDelete={handleDeletePost}
+                            onEditPost={() => {
+                            setEditPostData({ id: post.ID, title: post.Title, body: post.Body });
+                            setShowEditPostDialog(true);
+                            }}
                         />
                     ))}
                 </div>
@@ -239,6 +275,15 @@ const Homepage: React.FC = () => {
                 <AddPostDialog 
                     onClose={() => setShowAddPostDialog(false)}
                     onAddPost={handleAddPost}
+                />
+            )}
+            {showEditPostDialog && editPostData && (
+                <EditPostDialog 
+                    onClose={() => setShowEditPostDialog(false)}
+                    onEditPost={handleEditPost}
+                    initialTitle={editPostData.title}
+                    initialBody={editPostData.body}
+                    postId={editPostData.id}
                 />
             )}
         </div>

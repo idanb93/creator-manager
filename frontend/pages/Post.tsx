@@ -8,11 +8,17 @@ interface PostProps {
     email : string
     nickname : string,
     onDelete: (id: string) => void;
+    onEditPost: (id : string, title : string, body : string) => void
 }
 
-const Post: React.FC<PostProps> = ({ id, topic, content, email, nickname, onDelete }) => {
+const Post: React.FC<PostProps> = ({ id, topic, content, email, nickname, onDelete, onEditPost}) => {
+
     const handleDelete = () => {
         onDelete(id);
+    };
+
+    const handleEditPost = () => {
+        onEditPost(id, topic, content);
     };
 
     return (
@@ -26,7 +32,7 @@ const Post: React.FC<PostProps> = ({ id, topic, content, email, nickname, onDele
                 <button className={styles.deletePostButton} onClick={handleDelete}>
                     Delete Post
                 </button>
-                <button className={styles.editPostButton} onClick={handleDelete}>
+                <button className={styles.editPostButton} onClick={handleEditPost}>
                     Edit Post
                 </button>
             </div>
