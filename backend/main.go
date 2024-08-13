@@ -26,22 +26,20 @@ type User struct {
 
 type Post struct {
     ID     uint   `gorm:"primaryKey;autoIncrement"`
-    Author uint   `gorm:"not null"` // Foreign key
+    Author uint   `gorm:"not null"` 
     Title  string `gorm:"not null"`
     Body   string `gorm:"type:text"`
 
-    // Define the relationship
     User User `gorm:"foreignKey:Author"`
 }
 
 type GetPost struct {
     ID     uint   `gorm:"primaryKey;autoIncrement"`
-    Author uint   `gorm:"not null"` // Foreign key
+    Author uint   `gorm:"not null"` 
     Title  string `gorm:"not null"`
     Body   string `gorm:"type:text"`
     Nickname string `gorm:"unique;not null"`
 
-    // Define the relationship
     User User `gorm:"foreignKey:Author"`
 }
 
@@ -51,7 +49,7 @@ var db *gorm.DB
 
 func main() {
     // Initialize the GORM connection
-    dsn := "ran_symbio:symbio@tcp(localhost:3306)/symbio_db?charset=utf8mb4&parseTime=True&loc=Local"
+    dsn := "ran_symbio:symbio@tcp(db:3306)/symbio_db?charset=utf8mb4&parseTime=True&loc=Local"
     var err error
     db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
     if err != nil {

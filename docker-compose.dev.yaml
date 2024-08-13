@@ -2,35 +2,40 @@ version: '3.8'
 
 services:
   # ##############################
-  # # Frontend Container (Production)
+  # # Frontend Container (Development)
   # ##############################
   frontend:
     container_name: frontend
-    image: frontend:1.0.0
+    image: frontend:dev
     build:
       dockerfile: Dockerfile
       context: ./frontend
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - NODE_ENV=development
     depends_on:
       - backend
 
   # ##############################
-  # # Backend Container (Production)
+  # # Backend Container (Development)
   # ##############################
   backend:
     container_name: backend
-    image: backend:1.0.0
+    image: backend:dev
     build:
       dockerfile: go.dockerfile
       context: ./backend
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - mynet
+    volumes:
+      - ./backend:/app
     ports:
       - "8080:8080"
+    environment:
+      - ENV=development
+    depends_on:
+      - db
 
   ##############################
   # Database Container
