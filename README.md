@@ -16,6 +16,8 @@ Initialize the application:
 docker compose up
 ```
 
+### This can take a few minutes as the backend container is waiting for the DB container health-check.
+
 Open your browser and browse to http://localhost:3000
 
 If you want to run the application in dev mode:
