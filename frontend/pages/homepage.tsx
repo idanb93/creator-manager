@@ -211,6 +211,7 @@ const Homepage: React.FC = () => {
                             id={post.ID} 
                             topic={post.Title}
                             content={post.Body}
+                            email={post.Email}
                             nickname={post.Nickname} // Pass nickname to Post component
                             onDelete={handleDeletePost} // Add this prop to handle deletion
                         />
@@ -222,8 +223,8 @@ const Homepage: React.FC = () => {
                     onClose={() => setShowDeleteUsersDialog(false)}
                     onDeleteUser={handleDeleteUser}
                     users={users.map(user => ({
-                        id: user.id,
-                        email: user.email,
+                        id: user.ID,
+                        email: user.Email,
                         Nickname: user.Nickname // Include nickname in user info passed to the dialog
                     }))}
                 />

@@ -29,6 +29,16 @@ type Post struct {
     Author uint   `gorm:"not null"` // Foreign key
     Title  string `gorm:"not null"`
     Body   string `gorm:"type:text"`
+
+    // Define the relationship
+    User User `gorm:"foreignKey:Author"`
+}
+
+type GetPost struct {
+    ID     uint   `gorm:"primaryKey;autoIncrement"`
+    Author uint   `gorm:"not null"` // Foreign key
+    Title  string `gorm:"not null"`
+    Body   string `gorm:"type:text"`
     Nickname string `gorm:"unique;not null"`
 
     // Define the relationship
@@ -79,7 +89,7 @@ func main() {
 }
 
 func getPostsHandler(w http.ResponseWriter, r *http.Request) {
-    var posts []Post
+    var posts []GetPost
 
     // Join the posts and users table to retrieve the posts along with the nickname of the author
     if result := db.Table("posts").
@@ -128,9 +138,9 @@ func createPostHandler(w http.ResponseWriter, r *http.Request) {
 
     // Create a new post
     post := Post{
-        Title:  req.Title,
-        Body:   req.Body,
-        Author: userID,
+        Title:    req.Title,
+        Body:     req.Body,
+        Author:   userID,
     }
 
     if result := db.Create(&post); result.Error != nil {

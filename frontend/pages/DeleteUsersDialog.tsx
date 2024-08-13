@@ -11,6 +11,7 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({ onClose, onDelete
 
   const handleDelete = () => {
     if (selectedUserId) {
+      console.log("selectedUserId", selectedUserId)
       onDeleteUser(selectedUserId);
       onClose();
     }
@@ -19,7 +20,6 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({ onClose, onDelete
   return (
     <div style={dialogStyles.overlay}>
       <div style={dialogStyles.dialog}>
-        <h3 style={{ color: 'white' }}>Select User to Delete</h3>
         <select
           style={dialogStyles.select}
           value={selectedUserId || ''}
@@ -28,7 +28,7 @@ const DeleteUsersDialog: React.FC<DeleteUsersDialogProps> = ({ onClose, onDelete
           <option value="" disabled>Select a user</option>
           {users.map(user => (
             <option key={user.id} value={user.id}>
-              {user.Nickname ? `${user.Nickname} (${user.email})` : user.email}
+              {user.Nickname ? user.Nickname : user.email}
             </option>
           ))}
         </select>
