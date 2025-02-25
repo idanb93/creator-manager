@@ -1,4 +1,4 @@
-# symbio-home-test
+# creator-manager
 
 ## Requirements
 - Have Docker installed on your machine.
@@ -16,7 +16,7 @@ Initialize the application:
 docker compose up
 ```
 
-### This can take a few minutes as the backend container is waiting for the DB container health-check..........
+### This can take a few minutes as the Backend container is waiting for the DB container health-check..........
 
 Open your browser and browse to http://localhost:3000 - You should be able to see the login screen.
 
