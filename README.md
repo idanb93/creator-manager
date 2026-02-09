@@ -16,7 +16,7 @@ Initialize the application:
 docker compose up
 ```
 
-### This can take a few minutes as the Backend container is waiting for the DB container health-check..........
+### This step may take a few minutes, as the backend container waits for the database health check to pass while the frontend container is being built.
 
 Open your browser and browse to http://localhost:3000 - You should be able to see the login screen.
 
